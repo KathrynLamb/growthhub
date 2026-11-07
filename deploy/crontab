@@ -1,0 +1,10 @@
+# deploy/crontab
+# Install for the growthhub user with:  sudo crontab -u growthhub deploy/crontab
+# flock stops two runs overlapping if one is slow.
+
+SHELL=/bin/bash
+APP=/srv/growthhub/app
+PY=/srv/growthhub/venv/bin/python
+
+* * * * *  cd $APP && flock -n /tmp/printables.lock $PY manage.py process_printables >> /srv/growthhub/logs/printables.log 2>&1
+15 3 * * * cd $APP && $PY manage.py purge_printables >> /srv/growthhub/logs/purge.log 2>&1

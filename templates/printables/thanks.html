@@ -1,0 +1,11 @@
+{# templates/printables/thanks.html #}
+{% extends "base.html" %}
+{% block title %}Your story is on its way | {{ SITE_NAME }}{% endblock %}
+{% block head %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Your story is on its way</h1>
+  <p class="lead">Check your inbox in the next few minutes. If it's not there, have a look in your spam folder.</p>
+  <p>While you wait, <a href="{% url 'moments:list' %}">browse stories for other moments</a>.</p>
+</section>
+{% endblock %}

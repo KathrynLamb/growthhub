@@ -1,0 +1,61 @@
+{# templates/moments/detail.html #}
+{% extends "base.html" %}
+{% block title %}{{ moment.page_title }} | {{ SITE_NAME }}{% endblock %}
+{% block description %}{{ moment.description }}{% endblock %}
+{% block head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{{ moment.title|escapejs }}",
+  "description": "{{ moment.description|escapejs }}",
+  "datePublished": "{{ moment.published_at|date:'c' }}",
+  "dateModified": "{{ moment.updated_at|date:'c' }}",
+  "author": {"@type": "Person", "name": "Katy Lamb"},
+  "publisher": {"@type": "Organization", "name": "FlipWhizz"}
+}
+</script>
+{% endblock %}
+{% block content %}
+<article class="moment">
+  <span class="tag">Ages {{ moment.get_age_band_display }}</span>
+  <h1>{{ moment.title }}</h1>
+  <p class="lead">{{ moment.summary }}</p>
+
+  <section class="note">
+    <h2>Why a personal story helps</h2>
+    <p>{{ moment.why_it_helps|linebreaksbr }}</p>
+  </section>
+
+  <section class="story">
+    <h2>A sample story</h2>
+    <div class="story-text" data-sample-name="{{ moment.sample_name }}" data-template="{{ moment.sample_story }}">
+      {{ moment.sample_story_rendered|linebreaks }}
+    </div>
+    <label class="try-name">Try it with your child's name:
+      <input type="text" id="try-name" maxlength="30" placeholder="{{ moment.sample_name }}">
+    </label>
+  </section>
+
+  {% if moment.tip_list %}
+  <section>
+    <h2>Tips for reading it together</h2>
+    <ul class="tips">{% for tip in moment.tip_list %}<li>{{ tip }}</li>{% endfor %}</ul>
+  </section>
+  {% endif %}
+
+  <section class="cta">
+    <h2>Make it theirs</h2>
+    <p>Get a free printable version of a story like this, with your child's name and space for them to draw every page.</p>
+    <a class="btn" href="{% url 'printables:request' %}?moment={{ moment.slug }}&utm_source=growthhub&utm_medium=moment&utm_campaign={{ moment.slug }}">Get the free printable</a>
+    <p class="muted">Or <a href="{{ FLIPWHIZZ_URL }}/?utm_source=growthhub&utm_medium=moment&utm_campaign={{ moment.slug }}">make a fully illustrated book at FlipWhizz</a>.</p>
+  </section>
+
+  {% if related %}
+  <section>
+    <h2>Other moments for this age</h2>
+    <div class="cards">{% for moment in related %}{% include "moments/_card.html" %}{% endfor %}</div>
+  </section>
+  {% endif %}
+</article>
+{% endblock %}

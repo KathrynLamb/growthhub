@@ -1,0 +1,35 @@
+{# templates/printables/form.html #}
+{% extends "base.html" %}
+{% block title %}Free personalised draw-your-own story | {{ SITE_NAME }}{% endblock %}
+{% block description %}A free printable story starring your child, with space to draw every page. Emailed to you in minutes.{% endblock %}
+{% block content %}
+<section class="form-wrap">
+  <h1>A free story starring your child</h1>
+  <p class="lead">Tell us a little about them. We'll email you a printable story with their name in it and a space to draw every page.</p>
+
+  <div class="alert" id="form-message" {% if not error %}hidden{% endif %} role="alert">{{ error }}</div>
+
+  <form method="post" id="printable-form" novalidate>
+    {% csrf_token %}
+    {% for field in form %}
+      {% if field.name == "website" %}
+        <div class="hp" aria-hidden="true">{{ field }}</div>
+      {% elif field.field.widget.input_type == "checkbox" %}
+        <div class="field check" data-field="{{ field.name }}">
+          <label>{{ field }} {{ field.label }}</label>
+          <p class="error">{{ field.errors|join:" " }}</p>
+        </div>
+      {% else %}
+        <div class="field" data-field="{{ field.name }}">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
+          <p class="error">{{ field.errors|join:" " }}</p>
+        </div>
+      {% endif %}
+    {% endfor %}
+    <button class="btn" type="submit">Send my free story</button>
+    <p class="muted small">Your child's first name is never sent to any AI service: it's added to the story on our server. We delete your details after 30 days.</p>
+  </form>
+</section>
+{% endblock %}

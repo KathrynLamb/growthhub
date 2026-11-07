@@ -1,0 +1,19 @@
+{# templates/core/home.html #}
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <h1>Stories for the big moments</h1>
+  <p class="lead">A new baby, a first day, a move, a goodbye. A story where your child is the hero helps them understand what's coming and feel brave about it.</p>
+  <a class="btn" href="{% url 'printables:request' %}">Get a free draw-your-own story</a>
+</section>
+
+{% if moments %}
+<section>
+  <h2>Choose a moment</h2>
+  <div class="cards">
+    {% for moment in moments %}{% include "moments/_card.html" %}{% endfor %}
+  </div>
+  <p><a href="{% url 'moments:list' %}">See all moments</a></p>
+</section>
+{% endif %}
+{% endblock %}

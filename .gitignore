@@ -1,0 +1,11 @@
+# .gitignore
+.env
+*.sqlite3
+__pycache__/
+*.pyc
+.pytest_cache/
+staticfiles/
+.venv/
+venv/
+*.log
+sample-output/

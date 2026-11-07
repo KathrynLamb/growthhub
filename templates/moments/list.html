@@ -1,0 +1,19 @@
+{# templates/moments/list.html #}
+{% extends "base.html" %}
+{% block title %}Stories for big moments in a child's life | {{ SITE_NAME }}{% endblock %}
+{% block content %}
+<h1>Moments</h1>
+<p class="lead">Pick the moment your child is facing. Each one has a sample story, an educator's note and tips.</p>
+
+<div class="filters" role="group" aria-label="Filter by age">
+  <a class="chip {% if not selected_age %}active{% endif %}" href="{% url 'moments:list' %}">All ages</a>
+  {% for value, label in age_bands %}
+    <a class="chip {% if selected_age == value %}active{% endif %}" href="?age={{ value }}">Ages {{ label }}</a>
+  {% endfor %}
+</div>
+
+<div class="cards">
+  {% for moment in moments %}{% include "moments/_card.html" %}
+  {% empty %}<p>No moments here yet.</p>{% endfor %}
+</div>
+{% endblock %}

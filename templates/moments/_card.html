@@ -1,0 +1,6 @@
+{# templates/moments/_card.html #}
+<a class="card" href="{{ moment.get_absolute_url }}">
+  <span class="tag">Ages {{ moment.get_age_band_display }}</span>
+  <h3>{{ moment.short_name }}</h3>
+  <p>{{ moment.summary }}</p>
+</a>

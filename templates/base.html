@@ -1,0 +1,38 @@
+{# templates/base.html #}
+{% load static %}<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}Personal stories for the big moments in a child's life, from an early years educator.{% endblock %}">
+  <link rel="canonical" href="{{ canonical_url }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <div class="rainbow"></div>
+  <header class="site-header">
+    <a class="brand" href="{% url 'core:home' %}">FlipWhizz <span>Stories</span></a>
+    <nav>
+      <a href="{% url 'moments:list' %}">Moments</a>
+      <a class="btn btn-small" href="{% url 'printables:request' %}">Free printable</a>
+    </nav>
+  </header>
+
+  <main>{% block content %}{% endblock %}</main>
+
+  <footer class="site-footer">
+    <p>Made by Katy, an early years and outdoor educator of 20 years, at
+      <a href="{{ FLIPWHIZZ_URL }}/?utm_source=growthhub&utm_medium=footer">FlipWhizz</a>.</p>
+    <p class="muted">You wrote this. Just with a bit of help.</p>
+  </footer>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+          integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <script src="{% static 'js/site.js' %}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
