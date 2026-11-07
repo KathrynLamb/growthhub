@@ -1,0 +1,5 @@
+{
+  "crons": [
+    { "path": "/internal/cron/", "schedule": "0 4 * * *" }
+  ]
+}

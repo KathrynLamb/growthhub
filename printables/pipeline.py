@@ -1,5 +1,10 @@
 # printables/pipeline.py
-"""Processes queued printable requests. Run by cron via `manage.py process_printables`.
+"""Processes printable requests.
+
+Two ways in:
+- Server mode: cron runs `manage.py process_printables` every minute.
+- Vercel mode: the form calls process_now() straight away, and a scheduled
+  call to /internal/cron/ runs run_batch() to retry anything that failed.
 
 Each request is claimed inside a transaction with SELECT ... FOR UPDATE
 (SKIP LOCKED where supported), so two overlapping cron runs never process the
@@ -10,7 +15,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.db import connection, transaction
-from django.db.models import Q
+from django.db.models import F, Q
 from django.utils import timezone
 
 from .email import EmailError, send_printable
@@ -40,6 +45,22 @@ def claim_next():
         req.claimed_at = timezone.now()
         req.save(update_fields=["status", "attempts", "claimed_at"])
         return req
+
+
+def process_now(pk):
+    """Claim and process one specific request (used when processing inline).
+
+    The claim is a single conditional UPDATE, so if a scheduled retry run picks
+    up the same row at the same moment, only one of them wins.
+    """
+    claimed = PrintableRequest.objects.filter(pk=pk, status=PrintableRequest.Status.QUEUED).update(
+        status=PrintableRequest.Status.PROCESSING,
+        attempts=F("attempts") + 1,
+        claimed_at=timezone.now(),
+    )
+    if not claimed:
+        return False
+    return process(PrintableRequest.objects.get(pk=pk))
 
 
 def process(req):

@@ -39,6 +39,7 @@ def robots_txt(request):
     lines = [
         "User-agent: *",
         "Disallow: /admin/",
+        "Disallow: /internal/",
         "Disallow: /free-printable/thanks/",
         f"Sitemap: {public_url(request, reverse('sitemap'))}",
     ]

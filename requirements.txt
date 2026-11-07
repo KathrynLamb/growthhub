@@ -1,12 +1,9 @@
 # requirements.txt
+# Runtime only: this is what Vercel bundles. Test tools are in requirements-dev.txt.
 Django>=5.2,<5.3
 PyMySQL>=1.1
-cryptography>=42  # needed by PyMySQL for MySQL 8 caching_sha2_password auth
+cryptography>=42  # needed by PyMySQL for MySQL 8 auth and TLS
 reportlab>=4.0
 requests>=2.31
 anthropic>=0.40
 python-dotenv>=1.0
-
-# Test
-pytest>=8
-pytest-django>=4.8

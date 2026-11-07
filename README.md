@@ -9,13 +9,14 @@ It has two parts so far:
 
 ## Stack
 
-Python 3.12, Django 5.2 LTS, MySQL 8, jQuery, ReportLab, the Anthropic API, the Resend API, Apache + mod_wsgi on Ubuntu, GitHub Actions.
+Python 3.12, Django 5.2 LTS, MySQL 8, jQuery, ReportLab, the Anthropic API, the Resend API, GitHub Actions. It deploys two ways: free on Vercel with Aiven MySQL, or on an Ubuntu server with Apache + mod_wsgi.
 
 ## Design decisions
 
 - **The child's name never goes to the AI provider.** The model writes `{name}` and the server swaps the real name in when building the PDF. Only age, interests and the chosen moment are sent.
 - **Minimum data, minimum time** (UK Children's Code). IPs are stored only as salted hashes. A daily job clears names, emails and stories after 30 days. `forget_email` handles erasure requests.
-- **No Celery or Redis.** A cron job claims queued requests with `SELECT ... FOR UPDATE SKIP LOCKED`, so overlapping runs never double-process. Failures retry with backoff (5, 10, 20 minutes), stuck jobs are released after 15 minutes, and the generated story is kept between retries so a failed email doesn't pay for a second generation.
+- **Runs with or without a server.** On Vercel the form makes and sends the printable straight away, and a GitHub Actions schedule calls a secret-protected URL every 15 minutes to retry failures. On a server, cron does the same job every minute. Both share the same claim, retry and backoff code.
+- **No Celery or Redis.** Workers claim queued requests with `SELECT ... FOR UPDATE SKIP LOCKED`, so overlapping runs never double-process. Failures retry with backoff (5, 10, 20 minutes), stuck jobs are released after 15 minutes, and the generated story is kept between retries so a failed email doesn't pay for a second generation.
 - **Cost and abuse limits** per email, per IP and globally per day, counted in the database. A honeypot field stops simple bots. Interests text is cleaned and passed to the model as data, not instructions.
 - **Content review.** Moments start as drafts. The admin "Publish" action records who reviewed each one and when.
 - **One site for search.** With `PUBLIC_BASE_URL` set, canonical tags, the sitemap, robots.txt and API links all use flipwhizz.com even when the request comes through a proxy.
@@ -24,7 +25,7 @@ Python 3.12, Django 5.2 LTS, MySQL 8, jQuery, ReportLab, the Anthropic API, the 
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 cp .env.example .env      # set DJANGO_DEBUG=1; use DB_ENGINE=sqlite for no MySQL
 python manage.py migrate
 python manage.py seed_moments          # 10 draft moments to review
@@ -50,7 +51,7 @@ Useful commands:
 pytest
 ```
 
-33 tests cover publishing rules, the JSON API, form validation, rate limits, prompt privacy, story parsing, the retry and backoff pipeline, data purging and the health check. CI runs them against MySQL 8 on every push, along with `check --deploy` and a missing-migrations check.
+41 tests cover publishing rules, the JSON API, form validation, rate limits, prompt privacy, story parsing, the retry and backoff pipeline, both processing modes, the protected cron URL, data purging and the health check. CI runs them against MySQL 8 on every push, along with `check --deploy` and a missing-migrations check.
 
 ## API
 
@@ -64,6 +65,7 @@ Read-only, public, CORS-enabled, published content only.
 
 ## Operations
 
+- [DEPLOY-VERCEL.md](DEPLOY-VERCEL.md): free hosting on Vercel + Aiven MySQL (recommended)
 - [DEPLOY.md](DEPLOY.md): server setup on DigitalOcean, Apache, HTTPS, cron, and moving to flipwhizz.com/stories
 - [RUNBOOK.md](RUNBOOK.md): incident severities, first steps, rollback, and fixes for known failures
 

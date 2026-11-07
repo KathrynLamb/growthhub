@@ -99,13 +99,26 @@ else:
             "PASSWORD": os.environ.get("DB_PASSWORD", ""),
             "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
             "PORT": os.environ.get("DB_PORT", "3306"),
-            "CONN_MAX_AGE": 60,
+            "CONN_MAX_AGE": int(os.environ.get("DB_CONN_MAX_AGE", "60")),
+            "CONN_HEALTH_CHECKS": True,
             "OPTIONS": {
                 "charset": "utf8mb4",
                 "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
             },
         }
     }
+
+    # Hosted MySQL (e.g. Aiven) requires TLS. DB_SSL_CA holds the provider's CA
+    # certificate as PEM text, which is easy to paste into an environment
+    # variable. It's written to a temp file because the driver needs a path.
+    _ssl_ca = os.environ.get("DB_SSL_CA", "").strip()
+    if _ssl_ca:
+        import tempfile
+
+        _ca_path = Path(tempfile.gettempdir()) / "db-ca.pem"
+        if not _ca_path.exists() or _ca_path.read_text() != _ssl_ca + "\n":
+            _ca_path.write_text(_ssl_ca + "\n")
+        DATABASES["default"]["OPTIONS"]["ssl"] = {"ca": str(_ca_path)}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -178,6 +191,15 @@ PRINTABLE_LIMIT_PER_EMAIL_PER_DAY = int(os.environ.get("PRINTABLE_LIMIT_PER_EMAI
 PRINTABLE_LIMIT_PER_IP_PER_DAY = int(os.environ.get("PRINTABLE_LIMIT_PER_IP_PER_DAY", "5"))
 PRINTABLE_GLOBAL_LIMIT_PER_DAY = int(os.environ.get("PRINTABLE_GLOBAL_LIMIT_PER_DAY", "200"))
 PRINTABLE_MAX_ATTEMPTS = int(os.environ.get("PRINTABLE_MAX_ATTEMPTS", "3"))
+
+# Where printables get made:
+#   False (server with cron): the form queues the request and cron sends it.
+#   True (Vercel): the form makes and sends it straight away; anything that
+#   fails is retried by the scheduled call to /internal/cron/.
+PRINTABLE_PROCESS_INLINE = env_bool("PRINTABLE_PROCESS_INLINE", False)
+
+# Shared secret for /internal/cron/. Unset means the URL returns 404.
+CRON_SECRET = os.environ.get("CRON_SECRET", "")
 
 # Personal data retention (UK Children's Code: keep the minimum, for the minimum time).
 PRINTABLE_RETENTION_DAYS = int(os.environ.get("PRINTABLE_RETENTION_DAYS", "30"))

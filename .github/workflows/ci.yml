@@ -41,7 +41,7 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements-dev.txt
 
       - name: Django system checks
         run: python manage.py check --deploy --fail-level ERROR

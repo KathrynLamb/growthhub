@@ -1,4 +1,5 @@
 # printables/views.py
+from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -8,6 +9,7 @@ from moments.models import Moment
 
 from .forms import PrintableRequestForm
 from .limits import LimitExceeded, check_limits, client_ip, hash_ip
+from .pipeline import process_now
 
 
 def _is_ajax(request):
@@ -41,6 +43,11 @@ def request_printable(request):
             printable.utm_medium = request.GET.get("utm_medium", "")[:60]
             printable.utm_campaign = request.GET.get("utm_campaign", "")[:60]
             printable.save()
+            if settings.PRINTABLE_PROCESS_INLINE:
+                # Make and send it now. If this fails, the request stays queued
+                # with a backoff and the scheduled retry picks it up, so the
+                # parent still sees the "on its way" page either way.
+                process_now(printable.pk)
             thanks_url = reverse("printables:thanks")
             if _is_ajax(request):
                 return JsonResponse({"ok": True, "redirect": thanks_url}, status=201)

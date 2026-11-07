@@ -59,7 +59,7 @@ $(function () {
       return;
     }
 
-    $button.prop("disabled", true).text("Sending...");
+    $button.prop("disabled", true).text("Writing your story...");
 
     $.ajax({
       url: window.location.href,
