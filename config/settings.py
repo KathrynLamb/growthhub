@@ -108,16 +108,24 @@ else:
         }
     }
 
-    # Hosted MySQL (e.g. Aiven) requires TLS. DB_SSL_CA holds the provider's CA
-    # certificate as PEM text, which is easy to paste into an environment
-    # variable. It's written to a temp file because the driver needs a path.
+    # Hosted MySQL (e.g. Aiven) requires TLS. DB_SSL_CA is either:
+    #   - a path to the CA certificate file (easiest locally: DB_SSL_CA=ca.pem), or
+    #   - the certificate's PEM text itself (easiest in Vercel's env var screen),
+    #     which is written to a temp file because the driver needs a path.
     _ssl_ca = os.environ.get("DB_SSL_CA", "").strip()
     if _ssl_ca:
-        import tempfile
+        if "BEGIN CERTIFICATE" in _ssl_ca:
+            import tempfile
 
-        _ca_path = Path(tempfile.gettempdir()) / "db-ca.pem"
-        if not _ca_path.exists() or _ca_path.read_text() != _ssl_ca + "\n":
-            _ca_path.write_text(_ssl_ca + "\n")
+            _ca_path = Path(tempfile.gettempdir()) / "db-ca.pem"
+            if not _ca_path.exists() or _ca_path.read_text() != _ssl_ca + "\n":
+                _ca_path.write_text(_ssl_ca + "\n")
+        else:
+            _ca_path = Path(_ssl_ca)
+            if not _ca_path.is_absolute():
+                _ca_path = BASE_DIR / _ca_path
+            if not _ca_path.exists():
+                raise RuntimeError(f"DB_SSL_CA points to {_ca_path}, which doesn't exist.")
         DATABASES["default"]["OPTIONS"]["ssl"] = {"ca": str(_ca_path)}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

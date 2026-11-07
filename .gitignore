@@ -9,3 +9,4 @@ staticfiles/
 venv/
 *.log
 sample-output/
+*.pem

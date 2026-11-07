@@ -119,3 +119,20 @@ def test_ssl_ca_setting_writes_cert(monkeypatch, tmp_path):
     finally:
         monkeypatch.undo()
         importlib.reload(s)
+
+
+def test_ssl_ca_setting_accepts_a_file_path(monkeypatch, tmp_path):
+    import importlib
+
+    import config.settings as s
+
+    cert = tmp_path / "ca.pem"
+    cert.write_text("-----BEGIN CERTIFICATE-----\nabc\n-----END CERTIFICATE-----\n")
+    monkeypatch.setenv("DB_ENGINE", "mysql")
+    monkeypatch.setenv("DB_SSL_CA", str(cert))
+    monkeypatch.setenv("DJANGO_SECRET_KEY", "test")
+    try:
+        assert importlib.reload(s).DATABASES["default"]["OPTIONS"]["ssl"]["ca"] == str(cert)
+    finally:
+        monkeypatch.undo()
+        importlib.reload(s)

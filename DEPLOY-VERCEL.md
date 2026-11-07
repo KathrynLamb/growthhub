@@ -18,7 +18,7 @@ Keep the password out of chats, code and screenshots.
 
 ## 2. Create the tables (from your Mac, once)
 
-In the project folder, put the Aiven details in your local `.env`:
+Save the downloaded certificate as `ca.pem` in the project folder (`*.pem` is git-ignored), then put the Aiven details in your local `.env`:
 
 ```bash
 DB_ENGINE=mysql
@@ -27,7 +27,7 @@ DB_PORT=<aiven port>
 DB_USER=avnadmin
 DB_PASSWORD=<aiven password>
 DB_NAME=defaultdb
-DB_SSL_CA="<paste the whole certificate, including the BEGIN and END lines>"
+DB_SSL_CA=ca.pem
 DJANGO_SECRET_KEY=<any long random string>
 ```
 
