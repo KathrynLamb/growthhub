@@ -19,6 +19,14 @@ class MomentAdmin(admin.ModelAdmin):
         ("Review", {"fields": ("status", "published_at", "reviewed_by", "reviewed_at", "created_at", "updated_at")}),
     )
 
+    def save_model(self, request, obj, form, change):
+        # Publishing from the edit page works the same as the list action:
+        # fill in the publish date and record who reviewed it.
+        if obj.status == Moment.Status.PUBLISHED and (obj.published_at is None or obj.reviewed_by is None):
+            obj.publish(user=request.user)
+            return
+        super().save_model(request, obj, form, change)
+
     @admin.action(description="Publish (marks as reviewed by you)")
     def publish_selected(self, request, queryset):
         for moment in queryset:

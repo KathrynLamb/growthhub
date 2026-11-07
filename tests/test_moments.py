@@ -95,3 +95,23 @@ def test_public_base_url_used_behind_proxy(client, make_moment, settings):
     assert '<link rel="canonical" href="https://flipwhizz.com/moments/new-baby-sibling/">' in html
     assert "https://flipwhizz.com/moments/new-baby-sibling/" in client.get("/sitemap.xml").content.decode()
     assert "Sitemap: https://flipwhizz.com/sitemap.xml" in client.get("/robots.txt").content.decode()
+
+
+def test_publishing_from_edit_page_sets_date_and_reviewer(client, make_moment, django_user_model):
+    """Choosing 'Published' in the status dropdown must make the page go live."""
+    admin_user = django_user_model.objects.create_superuser("katy", "k@example.com", "pw")
+    client.force_login(admin_user)
+    moment = make_moment("moving-house", status=Moment.Status.DRAFT)
+    url = reverse("admin:moments_moment_change", args=[moment.pk])
+    data = {
+        "short_name": moment.short_name, "title": moment.title, "slug": moment.slug,
+        "age_band": moment.age_band, "summary": moment.summary, "why_it_helps": moment.why_it_helps,
+        "tips": moment.tips, "sample_name": moment.sample_name, "sample_story": moment.sample_story,
+        "seo_title": "", "meta_description": "", "status": "published",
+        "published_at_0": "", "published_at_1": "",
+    }
+    assert client.post(url, data).status_code == 302
+    moment.refresh_from_db()
+    assert moment.published_at is not None
+    assert moment.reviewed_by == admin_user
+    assert client.get(reverse("moments:detail", args=["moving-house"])).status_code == 200
